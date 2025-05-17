@@ -180,23 +180,23 @@ export const footerLinks = [
 export const features = [
   {
     icon: delivery_truck_icon,
-    title: "Fastest Delivery",
-    description: "Groceries delivered in under 30 minutes.",
+    title: "Lightning-Fast Delivery",
+    description: "Get your groceries at your doorstep in no time.",
   },
   {
     icon: leaf_icon,
     title: "Freshness Guaranteed",
-    description: "Fresh produce straight from the source.",
+    description: "Straight from the source to your plate for u to taste.",
   },
   {
     icon: coin_icon,
     title: "Affordable Prices",
-    description: "Quality groceries at unbeatable prices.",
+    description: "Top-quality groceries at prices that make your wallet smile.",
   },
   {
     icon: trust_icon,
     title: "Trusted by Thousands",
-    description: "Loved by 10,000+ happy customers.",
+    description: "Join a community of happy customers.",
   },
 ];
 

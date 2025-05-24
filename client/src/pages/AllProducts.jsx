@@ -18,7 +18,7 @@ const AllProducts = () => {
   
     return (
     
-    <div className = 'mt-16 flex flex-col'> 
+    <div className = 'mt-16 flex flex-col pt-[30px]'> 
         <div className='flex flex-col items-end w-max'>
             <p className='text-2xl font-medium uppercase'> ALl Products</p>
             <div className='w-16 h-0.5 bg-primary rounded-full'></div>   

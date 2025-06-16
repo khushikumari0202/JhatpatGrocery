@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { assets, categories } from "../../assets/assets";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const AddProducts = () => {
       const [files, setFiles] = useState([])
@@ -9,9 +11,46 @@ const AddProducts = () => {
       const [price, setPrice] = useState([])
       const [offerPrice, setOfferPrice] = useState([])
 
+      const {axios, fetchProducts} = useAppContext();
 
       const onSubmitHandler = async (event)=>{
-        event.preventDefault();
+        try {
+            event.preventDefault();
+
+            const productData = {
+                name,
+                description: description.split('\n'),
+                category,
+                price,
+                offerPrice,
+                inStock: true
+            }
+
+            const formData = new FormData();
+            formData.append('productData', JSON.stringify(productData));
+            for(let i = 0; i< files.length; i++){
+                formData.append('images', files[i])
+            }
+
+            const {data}= await axios.post('/api/product/add', formData)
+
+            if(data.success){
+                toast.success(data.message);
+                setName('');
+                setDescription('')
+                setCategory('')
+                setPrice('')
+                setOfferPrice('')
+                setFiles([])
+
+                fetchProducts();
+            } else{
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+        
       }
 
     return (

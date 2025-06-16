@@ -6,7 +6,7 @@ export const sellerLogin = async (req, res) =>{
     try {
         const {email, password} =req.body;
         
-        if(password === process.env.SELLER_PASSWORD && email === process.env.SELLLER_EMAIL){
+        if(password === process.env.SELLER_PASSWORD && email === process.env.SELLER_EMAIL){
             const token = jwt.sign({email}, process.env.JWT_SECRET, {expiresIn: '7d'});
 
             res.cookie('sellerToken', token, {
@@ -30,11 +30,24 @@ export const sellerLogin = async (req, res) =>{
 
 export const isSellerAuth = async (req, res)=>{
     try {
-        
-        return res.json({success: true})
+        const { sellerToken } = req.cookies;
+
+        if (!sellerToken) {
+            return res.json({ success: false, message: "No token found" });
+        }
+
+        const decoded = jwt.verify(sellerToken, process.env.JWT_SECRET);
+
+        // optionally validate the email if needed
+        if (decoded.email !== process.env.SELLER_EMAIL) {
+            return res.json({ success: false, message: "Unauthorized" });
+        }
+
+        return res.json({ success: true });
+
     } catch (error) {
-        console.log(error.message);
-        res.json({success: false, message:error.message});
+        console.log("Auth check failed:", error.message);
+        return res.json({ success: false, message: error.message });
     }
 }
 

@@ -90,7 +90,7 @@ export const isAuth = async (req, res)=>{
     }
 }
 
-//Logot User: /spi/user/logout
+//Logot User: /api/user/logout
 
 export const logout = async (req, res)=>{
     try {

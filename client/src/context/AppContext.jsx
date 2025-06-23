@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState} from "react";
+import { createContext, useContext, useEffect,  useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { dummyProducts } from "../assets/assets";
+
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -20,6 +20,9 @@ export const AppContextProvider = ({children}) =>{
     const [products, setProducts] = useState([])
     const [cartItems, setCartItems] = useState({})
     const [searchQuery, setSearchQuery] = useState({})
+    
+    
+
 
     //fetch seller status
     const fetchSeller = async ()=>{
@@ -32,6 +35,20 @@ export const AppContextProvider = ({children}) =>{
             }
         } catch {
             setIsSeller(false)
+        }
+    }
+
+    //fetch user auth status, user data and cart items
+    const fetchUser = async()=>{
+        try {
+            const {data}= await axios.get('/api/user/is-auth');
+            if(data.success){
+                setUser(data.user)
+                setCartItems(data.user.cartItems || {})
+                
+            }
+        } catch (error) {
+            setUser(null)
         }
     }
 
@@ -105,10 +122,28 @@ export const AppContextProvider = ({children}) =>{
     }
 
     useEffect(()=>{
+        fetchUser()
         fetchSeller()
         fetchProducts()
         
     },[])
+
+    useEffect(()=>{
+        
+        const updateCart = async()=>{
+            try {
+                const {data} = await axios.post('/api/cart/update', {cartItems})
+                if(!data.success){
+                    toast.error(data.message)
+                }
+            } catch (error) {
+                toast.error(error.message)
+            }
+        }
+        if(user){
+            updateCart()
+        }
+    },[cartItems, user])
 
     const value = {navigate, user, setUser, setIsSeller, isSeller, 
         showUserLogin, setshowUserLogin, products, currency, addToCart,

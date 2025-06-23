@@ -19,7 +19,7 @@ const ProductDetails = () => {
     useEffect(()=> {
         if(products.length > 0 && product){
             let productsCopy = products.slice();
-            productsCopy = productsCopy.filter((item)=> product.category === item.category && item._id !== product._id);
+            productsCopy = productsCopy.filter((item)=> product.category === item.category );
             setRelatedProducts(productsCopy.slice(0,5))
         }
     },[products, product])
@@ -37,7 +37,7 @@ const ProductDetails = () => {
                 <span className="text-primary"> {product.name}</span>
             </p>
 
-            <div className="flex flex-col md:flex-row gap-16 mt-4 pt-[50px]">
+            <div className="flex flex-col md:flex-row gap-16 mt-4 pt-[75px]">
                 <div className="flex gap-3">
                     <div className="flex flex-col gap-3">
                         {product.image.map((image, index) => (

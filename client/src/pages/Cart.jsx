@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react"
 import { useAppContext } from "../context/AppContext"
-import { assets, dummyAddress } from "../assets/assets"
+import { assets } from "../assets/assets"
 import toast from "react-hot-toast"
 
 
 const Cart = () => {
     
-    const {products, currency, cartItems, removeFromCart, getCartCount,updateCartItem, navigate, getCartAmount, axios, user} = useAppContext()
+    const {products, currency, cartItems, removeFromCart, getCartCount,updateCartItem, navigate, getCartAmount, axios, user, setCartItems} = useAppContext()
     const [cartArray, setCartArray] = useState([])
     const [addresses, setAddresses]= useState([])
     const [showAddress, setShowAddress] = useState(false)
     const [selectedAddress, setSelectedAddress] = useState(null)
-    const [paymentOption, setPayementOption] = useState("COD")
+    const [paymentOption, setPaymentOption] = useState("COD")
 
     const getCart = ()=>{
         let tempArray = []
@@ -40,7 +40,41 @@ const Cart = () => {
     }
 
     const placeOrder = async ()=>{
+        try {
+            if(!selectedAddress){
+                return toast.error("Pleasse Select an address")
+            }
 
+            //cod 
+            if(paymentOption === "COD"){
+                const {data} = await axios.post('/api/order/cod', {
+                    userId: user._id,
+                    items: cartArray.map(item=> ({product: item._id, quantity: item.quantity})),
+                    address: selectedAddress._id
+                })
+                if(data.success){
+                    toast.success(data.message)
+                    setCartItems([])
+                    navigate('/my-orders')
+                } else{
+                    toast.error(data.message)
+                }
+            } else{ //online payment
+                const {data} = await axios.post('/api/order/stripe', {
+                    userId: user._id,
+                    items: cartArray.map(item=> ({product: item._id, quantity: item.quantity})),
+                    address: selectedAddress._id
+                })
+                if(data.success){
+                    //redirect to stripe checkout
+                    window.location.replace(data.url)
+                } else{
+                    toast.error(data.message)
+                }
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
     useEffect(()=>{
@@ -131,7 +165,7 @@ const Cart = () => {
                     {/*--------payment---------------- */}
                     <p className="text-sm font-medium uppercase mt-6">Payment Method</p>
 
-                    <select onChange={e => setPayementOption(e.target.value)} className="w-full border border-gray-300 bg-white px-3 py-2 mt-2 outline-none">
+                    <select onChange={e => setPaymentOption(e.target.value)} className="w-full border border-gray-300 bg-white px-3 py-2 mt-2 outline-none">
                         <option value="COD">Cash On Delivery</option>
                         <option value="Online">Online Payment</option>
                     </select>

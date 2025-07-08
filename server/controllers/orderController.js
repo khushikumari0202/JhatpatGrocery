@@ -114,65 +114,39 @@ export const placeOrderStripe = async (req, res)=>{
 
 //STRIPE webhook: /stripe
 // STRIPE webhook: /stripe
-export const stripeWebhooks = async (request, response) => {
-    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-    const sig = request.headers['stripe-signature'];
-    let event;
+export const stripeWebhooks = async (req, res) => {
+  const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+  const sig = req.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripeInstance.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (error) {
+    return res.status(400).send(`Webhook Error: ${error.message}`);
+  }
+
+  // Correctly handle the checkout.session.completed
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const {orderId, userId} = session.metadata;
+
     try {
-        event = stripeInstance.webhooks.constructEvent(
-            request.body,
-            sig,
-            process.env.STRIPE_WEBHOOK_SECRET
-        );
-    } catch (error) {
-        return response.status(400).send(`Webhook Error: ${error.message}`);
+      await Order.findByIdAndUpdate(orderId, { isPaid: true }, { new: true });
+      await User.findByIdAndUpdate(userId, { cartItems: [] }, { new: true });
+      console.log("Payment Success: Order marked as paid.");
+    } catch (err) {
+      console.error("Error updating order after payment:", err.message);
     }
+  }
 
-    // ✅ Handle checkout.session.completed
-    switch (event.type) {
-        case "payment_intent.succeeded":{
-            const paymentIntend = event.data.object;
-            const paymentIntentId = paymentIntend.id;
-
-            //getting session metadata
-            const session = await stripeInstance.checkout.session.list({
-                payment_intent: paymentIntentId,
-            });
-
-            const {orderId, userId} = session.data[0].metadata;
-
-            //mark order as paid
-            await Order.findByIdAndUpdate(orderId, {isPaid: true}, {new: true});
-            //clear cart items
-            await User.findByIdAndUpdate(userId, {cartItems: []}, {new: true});
-            break;
-        }
-
-        case "payment_intent.payment_failed":{
-            const paymentFailed = event.data.object;
-            const paymentIntentId = paymentFailed.id;
-
-            //getting session metadata
-            const session = await stripeInstance.checkout.session.list({
-                payment_intent: paymentIntentId,
-            });
-
-            const {orderId} = session.data[0].metadata;
-
-            //mark order as failed
-            await Order.findByIdAndUpdate(orderId);
-            break;
-        }
-
-    
-    
-        default:
-            console.error(`Unhandled event type ${event.type}`);
-            break;
-    }
-
-  response.json({ received: true });
+  res.json({ received: true });
 };
+
 
 
 //get orders by user id: /api/order/user

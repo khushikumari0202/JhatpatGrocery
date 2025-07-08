@@ -45,7 +45,7 @@ export const AppContextProvider = ({children}) =>{
             if(data.success){
                 setUser(data.user)
                 if (data.user.cartItems && Object.keys(data.user.cartItems).length > 0) {
-                setCartItems(data.user.cartItems);
+                  setCartItems(data.user.cartItems);
                 }    
             }
         } catch (error) {
